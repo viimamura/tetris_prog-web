@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,8 +31,13 @@
     
     <title>Rooling Tetris</title>
 </head>
-
-<body style="background-image: url(img/Endless-Constellation.svg);overflow-x:hidden;" onload="choice()">
+<body style="background-color: #000000;">
+    <audio id="inicio_game">
+        <source src="Som/tetris_piano.mp3" type="audio/mp3" />
+     </audio>
+     <audio id="linha_eliminada">
+        <source src="Som/faustao.mp3" type="audio/mp3" />
+     </audio>
 
     <!--NAV -->
     <nav class="navbar navbar-expand-lg " id="edit">
@@ -47,7 +51,7 @@
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item"><a class="nav-link active menu" href="#" style="color:#ff5e57;">Rolling
                             Tetris</a></li>
-                    <li class="nav-item"><a class="nav-link active menu" href="ranking_global.html">Ranking Global</a>
+                    <li class="nav-item"><a class="nav-link active menu" href="ranking_global.html">Rankings</a>
                     </li>
                     <li class="nav-item"><a class="nav-link active menu" href="#myModal" data-toggle="modal"
                             data-target="#myModal">Editar Perfil</a></li>
@@ -58,112 +62,29 @@
         </div>
     </nav>
 
-    <!--SCORE JOGADOR-->
-    <header>
-        <div class="row">
-            <div class="col-xl-3 col-lg-6 col-sm-6 col-6 conjss-score" >
-                <span class="score-info">TEMPO DE PARTIDA:</span><span class="score-info-2" id="tempo">00:00</span>
-            </div>
-            <div class="col-xl-2 col-lg-6 col-sm-6 col-6 conjss-score">
-                <span class="score-info">SCORE:</span><span class="score-info-2" id="score">0</span>
-            </div>
-            <div class="col-xl-4 col-lg-6 col-sm-6 col-6">
-                <span class="score-info">Nº LINHAS ELIMINADAS:</span><span class="score-info-2" id="linhaseliminadas">0</span>
-            </div>
-            <div class="col-xl-3 col-lg-6 col-sm-6 col-6">
-                <span class="score-info">NÍVEL DE DIFICULDADE:</span><span class="score-info-2" id="dificuldade">MÉDIO</span>
-            </div>         
-        </div>
-
-
-    </header>
-
-    <!--GAME-->
-   
-    <div class="col-xl-3 col-lg-6 col-sm-6 col-6">
-        <span class="score-info">NÍVEL DE DIFICULDADE:</span><canvas id="Next_piece"></canvas>
-    </div>   
-        <canvas id="rt" width="500" height="1000"></canvas>
-       
-        <script src="js/main.js"></script>
+ <main id="gameState" class="stoped main" >   
+	<div class="grid">
+        <audio id="audio">
+            <source src="Som/damagecoda.mp3" type="audio/mp3" />
+         </audio>
+        <canvas id="rolling_tetris" class="game-board" height="200" width="400"></canvas>
+		<div class="right-column">
+			<div>
+				<p><span class="info-player">Score:</span><span id="score" class="info-player-nums">0</span></p>
+                <p><span class="info-player">Tempo de partida:</span> <span id="tempo" class="info-player-nums">0</span></p>
+                <p><span class="info-player">Linhas eliminadas:</span><span id="linhaseliminadas" class="info-player-nums">0</span></p>
+                <p><span class="info-player">Nível de dificuldade:</span><span id="dificuldade" class="info-player-nums">Fácil</span></p>
+                <p><span class="info-player">Next piece:</span></p>
+                <canvas id="Next_piece" class="next"></canvas>
+			</div>	
+            <button  class="play-button button"  data-toggle="modal" data-target="#escolher_game" id="play-btn" >Play</button>
+             <button  data-toggle="modal" data-target="#reiniciar_jogo" id="restart-btn" class="restart-button button">Reiniciar Game</button>
+		</div>
+    </div>
     
-    <!--RANKING JOGADOR-->
-    <section>
-        <div class="titulo-rank text-center">
-            <h2 class="titulos"><b>RANKING JOGADOR</b></h2>
-            <hr class="hr">
-        </div>
-        <div class="rank bg-dark">
-            <table id="table_rank" class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Nome</th>
-                        <th scope="col">Pontuação</th>
-                        <th scope="col">Nível atingido</th>
-                        <th scope="col">Tempo de duraçao</th>
-                    </tr>
-                </thead>
-                <tbody class="text-white">
-                    <tr>
-                        <th scope="row">João</th>
-                        <td>200</td>
-                        <td>10</td>
-                        <td>10</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">João</th>
-                        <td>200</td>
-                        <td>10</td>
-                        <td>10</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">João</th>
-                        <td>200</td>
-                        <td>10</td>
-                        <td>10</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">João</th>
-                        <td>200</td>
-                        <td>10</td>
-                        <td>10</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">João</th>
-                        <td>200</td>
-                        <td>10</td>
-                        <td>10</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">João</th>
-                        <td>200</td>
-                        <td>10</td>
-                        <td>10</td>
-                    </tr>
-                </tbody>
-            </table>
-            <ul class="pagination justify-content-center bg-dark">
-                <li class="page-item">
-                    <a class="page-link bg-dark text-white" href="#" tabindex="-1">Anterior</a>
-                </li>
-                <li class="page-item "><a class="page-link bg-dark text-white" href="#">1</a></li>
-                <li class="page-item ">
-                    <a class="page-link bg-dark text-white" href="#">2 </a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link bg-dark text-white" href="#">3</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link bg-dark text-white" href="#">Próximo</a>
-                </li>
-            </ul>
-        </div>
-    </section>
-
-    <!--INFO-BOOSTRAP-->
-    <footer class="text-white">
-        <div class="text-center">Utilizou-se do Bootstrap como framework de desenvolvimento</div>
-    </footer>
+     <!--JS TETRIS-->
+     <script src="js/main.js"></script>
+ </main>
 
     <!-- Modal -->
     <div class="modal fade" id="myModal" role="dialog">
@@ -226,24 +147,70 @@
     <!-- Modal SAIR -->
     <div class="modal fade" id="sair_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Deseja sair?</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header  bg-danger  ">
+                    <h5 class="modal-title text-light" id="exampleModalLabel">Deseja sair?</h5>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-success" data-dismiss="modal">Confirmar</button>
-                    <button type="button" class="btn btn-danger">Cancelar</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
                 </div>
             </div>
         </div>
     </div>
 
+        <!-- MODAL Reiniciar o Jogo  -->
+        <div class="modal fade" id="reiniciar_jogo" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Deseja mesmo reiniciar o jogo?</h5>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-success"  onclick="reiniciar_jogo()">Confirmar</button> 
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                </div>
+                </div>
+            </div>
+        </div>
+      <!-- Modal Escolher Game -->
+      <div class="modal fade" id="escolher_game" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger ">
+            <h5 class="modal-title text-white"><b>Seja bem vindo ao Rolling Tetris!</b></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+            Olá, para acessar o jogo selecione o tamanho do tetris desejado logo abaixo.<br> <b>Atenção: </b>Para reiniciar o jogo é só clicar no botão <i>Reiniciar Game</i> e logo em seguida clicar no botão <i>Play</i><br>
+            <a href="https://drive.google.com/file/d/17luc1eAHSpiqHmqT0TFLGPT9_Yt60Y1T/view?usp=sharing">Acessar o manual do game</a>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-danger bg-danger text-white font-weight-bold" data-dismiss="modal" onclick="start_game(1)">Rolling Tetris (10x20)</button>
+            <button type="button" class="btn btn-danger  bg-danger text-white font-weight-bold" data-dismiss="modal" onclick="start_game(2)">Rolling Tetris (22x44)</button>
+            </div>
+        </div>
+        </div>
+    </div>
+    
+    
+        <!-- MODAL GAME OVER   -->
+        <div class="modal fade" id="game_over" tabindex="-1" role="dialog"  aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Game over! Deseja Jogar Novamente?</h5>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-success"  onclick="jogar_again_game_over()" data-dismiss="modal"> Jogar novamente</button> 
+                    <button type="button" class="btn btn-danger" onclick="reiniciar_jogo()">Cancelar e voltar ao menu.</button>
+                </div>
+                </div>
+            </div>
+            </div>
+    
 </body>
-
-
-
 </html>

@@ -1,23 +1,20 @@
-
 //------------- Constantes ------------------
-const scorePlayer = document.getElementById("score");//const usadas depois para setar os atributos
-const linesPlayer = document.getElementById("linhaseliminadas");
-const dificultPlayer = document.getElementById("dificuldade");
-const tamPecas = 20; //size peça in px
-const backgroundTab = "#2c3e50"; //fundo color tab
-const borderTab = "#ff5e57"; //bordar pra conseguir visualizar as peças e o size
+const backgroundTab = "#0a0b19"; //fundo color tab
+const borderTab = "red"; //bordar pra conseguir visualizar as peças e o size
 
 //------------- CANVAS ------------------
-var cvs = document.getElementById("rt");
+var cvs = document.getElementById("rolling_tetris");
 var context_tetris = cvs.getContext("2d");//declarando o efeito de jogo
 var nextCanvas = document.getElementById('Next_piece');
 var nextBlocks = nextCanvas.getContext("2d");
 
 // ----------- Variaveis do game ------------
+let canMove = true;
+let tamPecas = 20; //size peça in px
 var N_ROW = 0;//tabuleiro dimensão
 var N_COL = 0;
 var tabuleiro = [];
-let speed_peca= 500;
+let speed_peca= 400;
 let dropStart = Date.now();//Frame atual do usuário inicial.
 let score = 0;
 let count_line = 0;
@@ -27,6 +24,10 @@ var timerMilesimos = 1000; //1 segundo tem 1000 milésimos
 var timerPlayer = 0;
 var qtdLinhas = 0; //conta a quantidade de linhas eliminadas
 var sequenciaLinhas = 0; //sequencia de linhas eliminadas de uma vez so (para calculo da pontuacao bonus)
+var valor_tab_atual =0;
+var audio_game_over = document.getElementById('audio');
+var audio_inicio_game = document.getElementById('inicio_game');
+var audio_line = document.getElementById('linha_eliminada');
 
 // ----------- Classe PECAS------------
 
@@ -52,24 +53,37 @@ const L = [ [[0, 0, 1],[1, 1, 1],[0, 0, 0]], [ [0, 1, 0],[0, 1, 0],[0, 1, 1] ], 
 const O = [ [[0, 0, 0, 0],[0, 1, 1, 0],[0, 1, 1, 0],[0, 0, 0, 0],] ];
 const T = [ [[0, 1, 0],[1, 1, 1],[0, 0, 0]],[[0, 1, 0],[0, 1, 1],[0, 1, 0]],[[0, 0, 0],[1, 1, 1],[0, 1, 0]],[[0, 1, 0],[1, 1, 0],[0, 1, 0]]];
 const U = [ [[1, 0, 1],[1, 1, 1],[0, 0, 0]], [ [0, 1, 1],[0, 1, 0],[0, 1, 1]], [ [0, 0, 0],[1, 1, 1],[1, 0, 1]], [ [1, 1, 0],[0, 1, 0],[1, 1, 0]]];
+const Especially = [ [[0, 0, 0, 0],[0, 1, 0, 0],[0, 0, 0, 0],[0, 0, 0, 0],] ];
 //Peças e suas cores.
-const tetrominoes = [[I,"#55E6C1"],[J,"#1B9CFC"], [L,"#ffcccc"],[O,"#32ff7e"],[T,"#c23616"],[U,"#ffffff"]];
-
+const tetrominoes = [[I,"#E32636"],[J,"#00FFFF"], [L,"#E32636"],[O,"#00FFFF"],[T,"#00FFFF"],[U,"#E32636"],[Especially,"#FF00FF"]];
+desabilitaRestart();
 
 
 // ----------- Função para selecionar o tamanho do tabuleiro *fazer validação ------------
-function choice(gameover){
-    var tabTAM = prompt("𝗘𝗦𝗖𝗢𝗟𝗛𝗔 𝗢 𝗧𝗔𝗕𝗨𝗟𝗘𝗜𝗥𝗢 𝗤𝗨𝗘 𝗗𝗘𝗦𝗘𝗝𝗔 𝗝𝗢𝗚𝗔𝗥\n𝟭 - Tabuleiro Clássico \n𝟮 - Tabuleiro Personalizado");
-    if(tabTAM == 1){ //retorna as dimensões de cada tipo de tabuleiro
+function choice(valor){
+   
+    try{//try p/ verificar exceções
+    if(valor == 1){ //retorna as dimensões de cada tipo de tabuleiro
         N_COL = 10;
         N_ROW = 20;
-        /*cvs.width = 280;//tamanho do canva p/ este tabuleiro
-        cvs.width = 580;*/
-    }else{
+         //TAMANHO DESSE: WIDTH 200; 400 height;
+         cvs.setAttribute("height", "400");
+         cvs.setAttribute("width", "200");
+         tamPecas = 20;
+         desabilitaPlay();
+         habilitaRestart();
+        
+    }else if(valor == 2){
         N_COL = 22;
         N_ROW = 44;
-        /*cvs.width = 500;//tamanho do canva p/ este tabuleiro
-        cvs.width = 1000;*/
+        cvs.setAttribute("height", "616");
+        cvs.setAttribute("width", "308");
+        tamPecas = 14;
+       //TAMANHO DESSE: WIDTH 440px; 880 height;
+       desabilitaPlay();
+       habilitaRestart();
+    }else{//caso digite qualquer coisa diferente de 1 e 2
+        return e;
     }
 
     for (let linha = 0; linha < N_ROW; linha++) {
@@ -78,33 +92,24 @@ function choice(gameover){
             tabuleiro[linha][coluna] = backgroundTab;
         }
     }
+    }catch(e){//exibe um alert
+        alert(e + "-- 𝗱𝗶𝗴𝗶𝘁𝗲 𝘂𝗺𝗮 𝗲𝗻𝘁𝗿𝗮𝗱𝗮 𝘃𝗮𝗹𝗶𝗱𝗮")
+    }
+    
+    
+}
+
+function start_game(valor){
+    valor_tab_atual = valor;
+    choice(valor);
     layoutTetris();
+    play_inicio_game();
+    setScoreLine(); //seta o score (0) e linhas eliminadas (0)
     startTimer(); //inicia o cronomêtro
+    Movimentation();
 }
 
 
-function choiceJogaNovamente(){
-    var tabTAM = prompt("DESEJA JOGAR NOVAMENTE?\n𝟭 - Tabuleiro Clássico \n𝟮 - Tabuleiro Personalizado");
-    if(tabTAM == 1){ //retorna as dimensões de cada tipo de tabuleiro
-        N_COL = 10;
-        N_ROW = 20;
-        /*cvs.width = 280;//tamanho do canva p/ este tabuleiro
-        cvs.width = 580;*/
-    }else{
-        N_COL = 22;
-        N_ROW = 44;
-        /*cvs.width = 500;//tamanho do canva p/ este tabuleiro
-        cvs.width = 1000;*/
-    }
-    for (let linha = 0; linha < N_ROW; linha++) {
-        tabuleiro[linha] = [];
-        for(let coluna = 0; coluna < N_COL; coluna++) {
-            tabuleiro[linha][coluna] = backgroundTab;
-        }
-    }
-    layoutTetris();
-    startTimer(); //inicia o cronomêtro
-}
 // ----------- Desenhar o tabuleiro (DrawBoard) ------------
 function layoutTetris() { 
     for (var linha = 0; linha < N_ROW; linha++) {
@@ -173,13 +178,49 @@ function Movimentation() {
     }
     if(!gameOver){
         requestAnimationFrame(Movimentation);
+        if(tamPecas == 20){
+            speed_peca_tab_pequeno();
+        }
+        if (tamPecas == 14){
+            speed_peca_tab_grande();
+        }
     }
-    
-   
 }
-Movimentation();
 
-//Pintura de cada peça!!
+// ----------- Velocidade peça ------------
+
+function speed_peca_tab_pequeno(){
+    if(score>=300){
+        speed_peca = 200;
+        document.getElementById("dificuldade").innerHTML="Normal"
+    }
+    if(score>=600){
+        speed_peca = 100;
+        document.getElementById("dificuldade").innerHTML="Difícil"
+    }
+    if(score>=1200){
+        speed_peca= 80;
+        document.getElementById("dificuldade").innerHTML="Expert"
+    }
+}
+
+function speed_peca_tab_grande(){
+    if(score>=300){
+        speed_peca = 100;
+        document.getElementById("dificuldade").innerHTML="Normal"
+    }
+    if(score>=600){
+        speed_peca = 70;
+        document.getElementById("dificuldade").innerHTML="Difícil"
+    }
+    if(score>=1200){
+        speed_peca= 50;
+        document.getElementById("dificuldade").innerHTML="Expert"
+    }
+}
+
+// ----------- Pintura de cada peça ------------
+
 function fill_piece(color) { //Pintar a peça com uma cor.
     for(var linha = 0; linha < tetrominoes_obj.activePeca.length; linha++){
         for(var coluna = 0; coluna < tetrominoes_obj.activePeca.length; coluna++){   
@@ -190,17 +231,20 @@ function fill_piece(color) { //Pintar a peça com uma cor.
     }
 }
 
-//Desenhar a peça.
+// ----------- Desenhar a peça ------------
+
 function drawPieces() { 
     fill_piece(tetrominoes_obj.color);
 }
 
-//Apagar as peças
+// ----------- Apagar as peças ------------
+
 function deletePiece() { 
     fill_piece(backgroundTab);
 }   
 
-//Movimentação da peça para baixo
+// ----------- Movimentação da peça ------------
+
 function moveDown() { 
     if(!CheckCollision(0,1,tetrominoes_obj.activePeca)){
         //Se não estiver colidindo com nada, ela pode continuar descendo!!
@@ -258,6 +302,9 @@ Pecas.prototype.rodar = function(){
 }
     
 document.onkeydown = function (e) {
+    if(!canMove){
+        return false;
+    }
     switch (e.key) {
         case 'ArrowUp':
             tetrominoes_obj.rodar();
@@ -273,7 +320,8 @@ document.onkeydown = function (e) {
         }
 };
 
-//Funcao para checar a colisao das peças
+// ----------- Funcao para checar a colisao das peças ------------
+
 function CheckCollision(row, col, futurePiece) { 
     for (var linha = 0; linha < futurePiece.length; linha++) {
         for (var coluna = 0; coluna < futurePiece.length; coluna++) {
@@ -307,9 +355,10 @@ function CheckCollision(row, col, futurePiece) {
     return false;
 }
 
-//Travar as peças quando colidir
+// ----------- Travar as peças quando colidir ------------
 
 function lock(){
+    canMove = false;
     for(var linha = 0; linha < tetrominoes_obj.activePeca.length; linha++){
         for(var coluna = 0; coluna < tetrominoes_obj.activePeca.length; coluna++){
             if(tetrominoes_obj.activePeca[linha][coluna] == 0 ){ 
@@ -318,11 +367,9 @@ function lock(){
             }
             else if(tetrominoes_obj.y_board + linha < 0){
                 //Se estiver acima do quadro, é pq deu gameover. (ROLLING TETRIS MUDAR!!).
-               // gameOver();
-               gameOver = true;
-               alert("Você perdeu :(");
-               restartGame();
+              gameOver();
                 break;
+              
             }
             else{
             tabuleiro[tetrominoes_obj.y_board + linha][tetrominoes_obj.x_board + coluna]  = tetrominoes_obj.color;
@@ -332,23 +379,35 @@ function lock(){
     verificarLinha();
     atualizarScore();
     layoutTetris();
+    canMove = true;
 }
 
-// SCORE E REMOVER LINHAS 
+// ----------- Score, remover linhas e rotacionar tabuleiro ------------
 function verificarLinha() { //verificar linhas do tabuleiro
     sequenciaLinhas = 0;
     for (let linha = 0; linha < N_ROW; linha++) {
         let linhaCompleta = true; //variavel que representa se a linha esta completa
-        for (let coluna = 0; coluna < N_COL; coluna++){
+        for (let coluna = 0; coluna < N_COL; coluna++) {
             const corQuadrado = tabuleiro[linha][coluna]; 
             linhaCompleta = linhaCompleta && (corQuadrado !== backgroundTab) //verifica se a linha esta completa
+            if(corQuadrado == "#FF00FF"){ //se possuir a peça especial
+                var line_with_especial = linha; //guarda a linha que possui a peça especial
+            }
         }
-        if (linhaCompleta){ //se a linha estiver completa
-            sequenciaLinhas++;
-            atualizarLinha(linha); //atualiza linha (elimina)
+        if (linhaCompleta == true) { //se a linha estiver completa
+            sequenciaLinhas++; //conta a sequencia de linhas completas
+            atualizarLinha(linha); //atualiza linha (remove)
             contLinhas(); //atualiza a quantidade de linhas eliminadas no placar
+            play_line();
+            if(linha == line_with_especial) { //se a linha removida é a mesma linha que possui a peça especial
+                invert_tabuleiro(); //inverte o tabuleiro
+            }
         }
     }
+}
+var rotacionar = document.getElementById('rolling_tetris');   
+function invert_tabuleiro(){
+    rotacionar.classList.toggle('rotacionar')
 }
 function atualizarLinha(linha){ //atualizar caso tenha uma linha completa (deletar a mesma) e somar no score
     for (let y = linha; y > 1; y--){
@@ -371,9 +430,12 @@ function atualizarScore() { //atualiza o placar de pontuacao
     document.getElementById('score').innerHTML = mostrarScore;
 }
 
-// TEMPORIZADOR JOGO 
-function startTimer(){
-    timerPlayer = setInterval(() => { timer(); }, timerMilesimos);
+// ----------- Temporizador ------------
+
+function startTimer(){//recebe os milesimos e cria um timer
+    timerPlayer = setInterval(() => { 
+        timer(); 
+    }, timerMilesimos);
 }
 function stopTimer(){
     clearInterval(timerPlayer);
@@ -392,8 +454,10 @@ function timer(){
     }
     
 //Cria uma variável com o valor tratado MM:SS
+//No operador ternário se minutes < 10 então format recebe '0' + minutes senão só exibe os minutes
+//No operador ternário se seconds < 10 então format recebe '0' + seconds senão só exibe os seconds
 var format = (minutes< 10 ? '0' + minutes: minutes) + ':' + (seconds< 10 ? '0' + seconds: seconds);
-    
+
 //Insere o valor tratado no elemento counter
 document.getElementById('tempo').innerText = format;
 
@@ -402,7 +466,91 @@ return format;
 
 }
 
-function restartGame(){
-    choiceJogaNovamente();
+// ----------- Reiniciar Game  ------------
+
+function restartGame(valor){
+    start_game(valor);//função que solicita ao usuário possível reinicialização do game
 }
 
+function reiniciar_jogo(){
+    window.location.reload(true);
+}
+
+function jogar_again_game_over(){
+    restartGame(valor_tab_atual);
+    resetGame();
+}
+
+function gameOver() {
+    pause_inicio_game();
+    play_game_over();
+    abreModalGame_Over();
+}
+
+function abreModalGame_Over() {
+    $("#game_over").modal({
+      show: true
+    });
+}
+
+function resetGame() {
+    stopTimer();
+    speed_peca = 400;
+    document.getElementById("dificuldade").innerHTML="Fácil"
+    canMove = true;
+    dropStart = Date.now();
+    score = 0;
+    count_line = 0;
+    minutes = 0;
+    seconds = 0;
+    timerMilesimos = 1000; 
+    timerPlayer = 0;
+    qtdLinhas = 0; 
+    sequenciaLinhas = 0;
+    for ( linha = 0; linha < N_ROW; linha++) {
+        tabuleiro[linha] = [];
+        for( coluna = 0; coluna < N_COL; coluna++) {
+            tabuleiro[linha][coluna] = backgroundTab;
+        }
+    }
+}
+
+function setScoreLine() {
+    score = 0;
+    qtdLinhas = 0;
+    var zerar = qtdLinhas.toString();
+    document.getElementById('linhaseliminadas').innerHTML = zerar;
+    var zerar = score.toString();
+    document.getElementById('score').innerHTML = zerar;
+}
+
+// ----------- Alternar visualização botões  ------------
+
+function desabilitaPlay(){
+    $("#play-btn").hide();
+}
+
+function desabilitaRestart(){
+    $("#restart-btn").hide();
+}
+function habilitaRestart(){
+    $("#restart-btn").show();
+}
+
+// ----------- Sons Game  ------------
+
+function play_game_over(){
+    audio_game_over.play();
+ }
+ function play_inicio_game(){
+    audio_inicio_game.play();
+ }
+ 
+ function play_line(){
+    audio_line.play();
+ }
+
+ function pause_inicio_game(){
+    audio_inicio_game.pause();
+ }
+ 
